@@ -1,22 +1,31 @@
 <%- include("header") -%>
-<body>
-    <div class="box" id="heading">
-        <h1><%= kindofDay %> Todo List</h1>
-    </div>
 
-    
-    
-    <div class="box">
-        <% newListItem.forEach(function(ele){ %>
-            <div class="item">
-                        <input type="checkbox">
-                <p><%= ele.name  %></p>
-            </div>
-                
-        <%}) %>
-        <form action="/" class="item" method="post">
-            <input type="text" placeholder="New Item" name="newEntry" autocomplete="off">
-            <button type="submit">+</button>
-        </form></div>
+    <body>
+        <div class="box" id="heading">
+            <h1>
+                <%= kindofDay %> Todo List
+            </h1>
+        </div>
 
-<%- include("footer") -%>
+
+
+        <div class="box">
+            <% newListItem.forEach(function(ele){ %>
+                <form action="/delete" method="post">
+                    <div class="item">
+                        <input type="checkbox" value="<%= ele._id %>" onChange="this.form.submit()" name="checkBox">
+                        <p>
+                            <%= ele.name %>
+                        </p>
+                    </div>
+                </form>
+
+
+                <%}) %>
+                    <form action="/" class="item" method="post">
+                        <input type="text" placeholder="New Item" name="newEntry" autocomplete="off">
+                        <button type="submit">+</button>
+                    </form>
+        </div>
+
+        <%- include("footer") -%>

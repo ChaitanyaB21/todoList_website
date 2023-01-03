@@ -35,19 +35,13 @@ const item3 = new Item({
 
 const defaultItems = [item1, item2, item3];
 
-// Inserting all the items in the server
-// Item.insertMany(defaultItems , function(err){
-//     if(err){
-//         console.log(err);
-//     }else{
-//         console.log("All inserts are saved");
-//     }
-// })
 
+const listSchema = new mongoose.Schema({
+    name: String,
+    items: [itemSchema]
+});
 
-// console.log(itemsList);
-
-// mongoose.connection.close()
+const List = mongoose.model("List", listSchema);
 
 
 
@@ -59,7 +53,7 @@ app.set("view engine", "ejs");
 app.get("/", function (req, res) {
     day = currDate();
 
-    Item.find({}, function (err, foundItem) {
+    Item.find({}, function (err, foundItem) {   /* To get the list of elements of the dataset */
         // console.log(foundItem);
 
         if (foundItem.length === 0) {
@@ -73,11 +67,11 @@ app.get("/", function (req, res) {
             })
 
             res.redirect("/")
-        }else{
-            res.render("list", { kindofDay: day, newListItem: foundItem });
+        } else {
+            res.render("list", { kindofDay: day,  newListItem: foundItem });
         }
 
-        
+
     });
 
 
@@ -85,9 +79,68 @@ app.get("/", function (req, res) {
 
 app.post("/", function (req, res) {
     // console.log(req.body.newEntry);
-    var item = req.body.newEntry;
-    itemsList.push(item);
+    var itemName = req.body.newEntry;
+
+    const itemNew = new Item({
+        name: itemName
+    })
+
+    // Entering new value in the local database
+    Item.insertMany([itemNew], function (err) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("New item has been added in the database");
+        }
+    })
+
     res.redirect("/");
+})
+
+// Using Express Route parameter to create dynamic webpages 
+
+app.get('/:typeOfList', function (req, res) {
+    const customListName = req.params.typeOfList;
+
+    List.find({ name: customListName }, function (err, results) {
+        // console.log(results[0].items);
+        if (results.length === 0) {
+            // Create a new list
+            const list = new List({
+                name: customListName ,
+                items : defaultItems
+            });
+
+            list.save();
+            // res.render("list" , {kindofDay: results[0].name, newListItem: results[0].items }) ;
+        } else {
+            // Show the existing list
+
+            res.render("list" , {kindofDay: results[0].name, newListItem: results[0].items }) ;
+        }
+
+        
+    })
+   
+
+    
+})
+
+//  Post method for checkbox click
+
+app.post("/delete", function (req, res) {
+    let checkedItem = req.body.checkBox;
+
+    Item.findByIdAndRemove(checkedItem, function (err) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("Checked Item has been removed");
+            res.redirect("/");
+        }
+    })
+
+
 })
 
 
