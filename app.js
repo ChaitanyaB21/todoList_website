@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const _ = require("lodash");
 const app = express();
 const currDate = require(__dirname + "/Date.js")
 
@@ -68,7 +69,7 @@ app.get("/", function (req, res) {
 
             res.redirect("/")
         } else {
-            res.render("list", { kindofDay: day,  newListItem: foundItem });
+            res.render("list", { kindofDay: "Today",  newListItem: foundItem });
         }
 
 
@@ -80,10 +81,24 @@ app.get("/", function (req, res) {
 app.post("/", function (req, res) {
     // console.log(req.body.newEntry);
     var itemName = req.body.newEntry;
+    const listName = req.body.item ;
 
     const itemNew = new Item({
         name: itemName
     })
+
+    if (listName === "Today"){
+        itemNew.save();
+        res.redirect("/");
+    }else{
+        List.findOne({name:listName} , function(err , result){
+            result.items.push(itemNew);
+            result.save();
+            res.redirect("/" + listName);    
+        })
+    }
+
+
 
     // Entering new value in the local database
     Item.insertMany([itemNew], function (err) {
@@ -94,13 +109,13 @@ app.post("/", function (req, res) {
         }
     })
 
-    res.redirect("/");
+    
 })
 
 // Using Express Route parameter to create dynamic webpages 
 
 app.get('/:typeOfList', function (req, res) {
-    const customListName = req.params.typeOfList;
+    const customListName = _.capitalize(req.params.typeOfList);
 
     List.find({ name: customListName }, function (err, results) {
         // console.log(results[0].items);
@@ -112,6 +127,7 @@ app.get('/:typeOfList', function (req, res) {
             });
 
             list.save();
+            res.redirect("/" + customListName) ;
             // res.render("list" , {kindofDay: results[0].name, newListItem: results[0].items }) ;
         } else {
             // Show the existing list
